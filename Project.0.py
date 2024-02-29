@@ -9,8 +9,8 @@ def convert_grade(grade):
     # Implement a function to convert letter grades to a GPA value if needed
     pass
 
-Tk().withdraw()  # we don't want a full GUI, so keep the root window from appearing
-file1 = askopenfilename()  # show an "Open" dialog box and return the path to the selected file
+Tk().withdraw() 
+file1 = askopenfilename()  
 
 try:
     # Open the file in read mode
