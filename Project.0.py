@@ -74,7 +74,6 @@ try:
                 # Remove quotes and then split the line into parts
                 cleaned_line = line.strip().replace('\"', '')
                 parts = cleaned_line.split(',')
-
                 if len(parts) >= 3: # If there are enough parts to process
                     # Extract the name, ID number, and grade
                     # Assuming the first two parts are the last and first names
@@ -83,8 +82,8 @@ try:
                     grade = parts[3]  # Assuming grade is the fourth part
 
                     # Print the extracted information
-                   # print("Name:", name)
-                    print("Grade:", grade)
+                    #print("Name:", name)
+                    #print("Grade:", grade)
                    # print()  # Print an empty line between each student's information
                     
                     if (grade !="I") & (grade !="W") & (grade !="P") & (grade !="NP") & (convert_grade(grade)!=None): #These letter grades dont affect the GPA
