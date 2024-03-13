@@ -26,7 +26,7 @@ from tkinter.filedialog import askopenfilename
 def convert_grade(grade):
     match grade:
         case "A":
-            return 4.0
+            return 4.00
         case "A-":
             return 3.67
         case "B+":
@@ -49,14 +49,17 @@ def convert_grade(grade):
             return 0.67
         case "F":
             return 0.00
+        case _:
+            return None
 
 Tk().withdraw() 
 file1 = askopenfilename()  
 
-try:
+
+def readSection(fileName):
     # Open the file in read mode
-    with open(file1, 'r') as file:
-        # Read the contents of the file
+    with open(fileName, 'r', encoding="utf-8-sig") as file:
+    # Read the contents of the file
         lines = file.readlines()
 
         if not lines:
@@ -79,24 +82,52 @@ try:
                     # Assuming the first two parts are the last and first names
                     name = f"{parts[0]}, {parts[1]}"
                     id_number = parts[2]
-                    grade = parts[3]  # Assuming grade is the fourth part
-
-                    # Print the extracted information
-                    #print("Name:", name)
-                    #print("Grade:", grade)
-                   # print()  # Print an empty line between each student's information
+                    grade = parts[3] # Assuming grade is the fourth part
                     
-                    if (grade !="I") & (grade !="W") & (grade !="P") & (grade !="NP") & (convert_grade(grade)!=None): #These letter grades dont affect the GPA
+                    if (convert_grade(grade)!=None): #These letter grades dont affect the GPA
                         gradeArray = np.append(gradeArray, convert_grade(grade))
 
                 else:
                     print("Line does not have enough parts:", line)
+            return [sectionName, round(gradeArray.sum()/len(gradeArray), 2), sectionCredits] #returns section GPA
+
+
+def readGroup(fileName):
+    with open(fileName, 'r') as file:
+        lines = file.readlines()
+        if not lines:
+            print("File is empty")
+        else:
+            sectionNameArray = np.array([], dtype=str) # Array where section names will be held
+            sectionGradeArray = np.array([], dtype=float) # Array where section grades will be held
+            sectionCreditsArray = np.array([], dtype=float) # Array where section credits will be held
+
+            print(lines[0].strip().split()[0]) 
+            for line in lines[1:]:
+                cleaned_line = line.strip()
+                section = readSection(cleaned_line) #read each section in the group
+                sectionNameArray=np.append(sectionNameArray,section[0])
+                sectionGradeArray=np.append(sectionGradeArray,section[1])
+                sectionCreditsArray=np.append(sectionCreditsArray, float(section[2]))
+
+
+    with open("results.txt", "a") as result:
+        result.writelines(["Group: ", lines[0].strip().split()[0], "\nGroup GPA: ", str(np.dot(sectionGradeArray, sectionCreditsArray)/sectionCreditsArray.sum())]) #writes name of the group and group gpa
+        result.write(f"\nSections in {lines[0].strip().split()[0]}\n")
+        for i in range(len(sectionNameArray)):
+            result.writelines(["Section Name: ", sectionNameArray[i], " GPA: ", str(sectionGradeArray[i]), " Credits: ", str(sectionCreditsArray[i]),"\n"])
+        result.write("\n")
+
+
+def readRun(fileName):
+    with open(fileName, 'r') as file: 
+        lines = file.readlines()
+        runName = lines[0]
+        with open("results.txt", "w") as result:
+            result.writelines(["Run Name: ",runName,"\n"])
+        for line in lines[1:]:
+            readGroup(line.strip())
+
             
-            print(round(gradeArray.sum()/len(gradeArray), 2)) #prints section GPA
 
-except FileNotFoundError:
-    print("File not found. Please check the file path.")
-except Exception as e:
-    print("An error occurred:", e)
-
-
+readRun(file1)
