@@ -102,7 +102,6 @@ def readGroup(fileName):
             sectionGradeArray = np.array([], dtype=float) # Array where section grades will be held
             sectionCreditsArray = np.array([], dtype=float) # Array where section credits will be held
 
-            print(lines[0].strip().split()[0]) 
             for line in lines[1:]:
                 cleaned_line = line.strip()
                 section = readSection(cleaned_line) #read each section in the group
