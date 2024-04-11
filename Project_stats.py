@@ -2,8 +2,14 @@ import numpy as np
 import pandas as pd
 from tkinter import Tk, filedialog
 from pathlib import Path
+import os
 # Global dictionary to track 'A' grades per student across sections
+
 student_a_grades = {}
+student_a_minus_grades={}
+student_d_grades={}
+student_d_minus_grades={}
+student_f_grades= {}
 
 # Converts letter grade to grade points
 def convert_grade(grade):
@@ -61,17 +67,25 @@ def readSection(fileName):
     for line in lines[1:]:
         cleaned_line = line.strip().replace('\"', '').split(',')
         if len(cleaned_line) >= 4:
-            name = f"{cleaned_line[0]} {cleaned_line[1]}"
+            name = f"{cleaned_line[1]} {cleaned_line[0]}"
             grade = cleaned_line[3]
             if grade == "A":
                 student_a_grades[name] = student_a_grades.get(name, 0) + 1
+            elif grade == "A-":
+                student_a_minus_grades[name] = student_a_minus_grades.get(name, 0) + 1
+            elif grade == "D":
+                student_d_grades[name] = student_d_grades.get(name, 0) + 1
+            elif grade == "D-":
+                student_d_minus_grades[name] = student_d_minus_grades.get(name, 0) + 1
+            elif grade == "F":
+                student_f_grades[name] = student_f_grades.get(name, 0) + 1
             if convert_grade(grade) is not None:
                 gradeArray = np.append(gradeArray, convert_grade(grade))
 
     sectionGPA = round(gradeArray.sum() / len(gradeArray), 2) if gradeArray.size > 0 else 0
     return [sectionName, sectionGPA, sectionCredits]
 
-def readGroup(fileName):
+def readGroup(fileName, result_file_path):
     path_of_files=Path(fileName)
     parent_folder=path_of_files.parent
     with open(fileName, 'r') as file:
@@ -90,21 +104,21 @@ def readGroup(fileName):
 
     groupGPA = np.dot(sectionGradeArray, sectionCreditsArray) / sectionCreditsArray.sum() if sectionCreditsArray.sum() > 0 else 0
     groupStd = np.std(sectionGradeArray)
-    with open(parent_folder/"results.txt", "a") as result:
+    with open(result_file_path, "a") as result:
         result.write(f"Group: {lines[0].strip()}\nGroup GPA: {groupGPA:.2f}\n")
         for i in range(len(sectionNameArray)):
             result.write(f"Section Name: {sectionNameArray[i]}, GPA: {sectionGradeArray[i]}, Credits: {sectionCreditsArray[i]}\n")
         result.write("\n")
         z = calculate_z(sectionGradeArray,groupGPA, groupStd)
         for i in range(len(sectionGradeArray)):
-            if (z[i] > 2 or z[i] <-2):
+            if (z[i] >= 2 or z[i] <=-2):
                 result.write(f"Section {sectionNameArray[i]}'s GPA {sectionGradeArray[i]} is statistically different than the {lines[0].strip()}'s GPA {groupGPA:.2f} with z-score {z[i]:.2f}")
         result.write("\n")
 
     return lines[0].strip(), groupGPA
                 
 
-def readRun(fileName):
+def readRun(fileName, result_file_path):
     path_of_files=Path(fileName)
     parent_folder=path_of_files.parent
     groupNames = []
@@ -112,41 +126,107 @@ def readRun(fileName):
     with open(fileName, 'r') as file:
         lines = file.readlines()
 
-    with open(parent_folder/"results.txt", "w") as result:
+    with open(result_file_path, "w") as result:
         result.write(f"Run Name: {lines[0]}\n")
     for line in lines[1:]:
-        name, GPA = readGroup(parent_folder/line.strip())
+        name, GPA = readGroup(parent_folder/line.strip(), result_file_path)
         groupNames.append(name)
         groupGPA = np.append(groupGPA,GPA)
 
-    runGPA = groupGPA.sum() / 2
+    runGPA = groupGPA.sum() / len(groupGPA)
     if len(groupNames)>1:
-        with open(parent_folder/"results.txt", "a") as result:
+        with open(result_file_path, "a") as result:
             z = calculate_z(groupGPA, runGPA, groupGPA.std())
             for i in range(len(groupGPA)):
-                if (z[i] > 2 or z[i] <-2):
+                if (z[i] >= 2 or z[i] <=-2):
                     result.write(f"{groupNames[i]}\'s GPA {groupGPA[i]:.2f} is statistically different than the {lines[0].strip()}\'s GPA {runGPA:.2f} with z-score {z[i]:.2f}\n")
             result.write("\n")
 
 
 
 
-def analyze_a_grades(path: Path):
-    with open(path/"results.txt", "a") as result_file:
-        result_file.write("\nStudents with 'A' grade in at least 2 different sections:\n")
+def analyze_a_grades(result_file_path):
+    with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("Students with 'A' grade in at least 2 different sections:\n")
         for student, count in student_a_grades.items():
             if count >= 2:
-                result_file.write(f"{student} has received an 'A' grade in at least 2 different sections.\n")
+                flag = 1
+                result_file.write(f"{student}\n")
 
+        if flag==0:
+            result_file.truncate(previous_position)
+
+def analyze_a_minus_grades(result_file_path):
+    with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'A-' grade in at least 2 different sections:\n")
+        for student, count in student_a_minus_grades.items():
+            if count >= 2:
+                flag = 1
+                result_file.write(f"{student}\n")
+
+        if flag==0:
+            result_file.truncate(previous_position)
+
+
+        if flag==0:
+            result_file.truncate(previous_position)
+
+def analyze_d_grades(result_file_path):
+    with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D' grade in at least 2 different sections:\n")
+        for student, count in student_d_grades.items():
+            if count >= 2:
+                flag = 1
+                result_file.write(f"{student}\n")
+
+        if flag==0:
+            result_file.truncate(previous_position)
+
+def analyze_d_minus_grades(result_file_path):
+    with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D-' grade in at least 2 different sections:\n")
+        for student, count in student_d_minus_grades.items():
+            if count >= 2:
+                flag = 1
+                result_file.write(f"{student}\n")
+
+        if flag==0:
+            result_file.truncate(previous_position)
+
+def analyze_f_grades(result_file_path):
+    with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'F' grade in at least 2 different sections:\n")
+        for student, count in student_f_grades.items():
+            if count >= 2:
+                flag = 1
+                result_file.write(f"{student}\n")
+
+        if flag==0:
+                result_file.truncate(previous_position)
 
 def main():
-    
-    Tk().withdraw()
-    fileName = filedialog.askopenfilename()
-    readRun(fileName)
-    path_of_files=Path(fileName)
-    parent_folder=path_of_files.parent
-    analyze_a_grades(parent_folder)
+    pass
+    # Tk().withdraw()
+    # fileName = filedialog.askopenfilename()
+    # readRun(fileName)
+    # path_of_files=Path(fileName)
+    # parent_folder=path_of_files.parent
+    # analyze_a_grades(parent_folder)
 
 if __name__ == "__main__":
     main()

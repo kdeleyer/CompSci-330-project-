@@ -3,3 +3,9 @@
 *.run
 results.txt
 test
+venv
+build
+dist
+__pycache__
+hide
+ProjectInterface.spec
