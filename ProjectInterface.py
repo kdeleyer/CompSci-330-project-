@@ -6,7 +6,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 from pathlib import Path
-import Project_stats
+import Project_stats2
 
 
 
@@ -38,11 +38,11 @@ def on_goBtn_pressed():
         parent_folder = path_of_files.parent
         
         if os.path.basename(filePath).endswith(".run"):
-            Project_stats.student_a_grades= {}
-            Project_stats.student_a_minus_grades= {}
-            Project_stats.student_d_grades= {}
-            Project_stats.student_d_minus_grades= {}
-            Project_stats.student_f_grades= {}
+            Project_stats2.student_a_grades= {}
+            Project_stats2.student_a_minus_grades= {}
+            Project_stats2.student_d_grades= {}
+            Project_stats2.student_d_minus_grades= {}
+            Project_stats2.student_f_grades= {}
             print("file exists")
             result_file_path= parent_folder/f"{os.path.basename(filePath).rstrip('.run')}results.txt"
             # if os.path.exists(result_file_path):
@@ -52,13 +52,15 @@ def on_goBtn_pressed():
             #        i += 1
             #        result_file_path = parent_folder/f"results{i}.txt"
 
-            Project_stats.readRun(filePath, result_file_path)
-            Project_stats.analyze_a_grades(result_file_path)
-            Project_stats.analyze_a_minus_grades(result_file_path)
-            Project_stats.analyze_d_grades(result_file_path)
-            Project_stats.analyze_d_minus_grades(result_file_path)
-            Project_stats.analyze_f_grades(result_file_path)
+            Project_stats2.readRun(filePath, result_file_path)
+            Project_stats2.analyze_a_grades(result_file_path)
+            Project_stats2.analyze_a_minus_grades(result_file_path)
+            Project_stats2.analyze_d_grades(result_file_path)
+            Project_stats2.analyze_d_minus_grades(result_file_path)
+            Project_stats2.analyze_f_grades(result_file_path)
             donelbl.config(text=f"Successful")
+            ## opening results in window
+            os.system(f'start notepad {result_file_path}')
         else:
             donelbl.config(text="Not a .run file, please choose a .run file")
 
