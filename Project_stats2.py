@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
+from tkinter import Tk, filedialog
 from pathlib import Path
 import os
 
-# Global dictionaries to track grades per student across sections
+# Global dictionaries to track grades per student across sections, storing section names
 student_a_grades = {}
 student_a_minus_grades = {}
 student_d_grades = {}
@@ -41,7 +42,7 @@ def convert_grade(grade):
             return None
 
 def calculate_z(sectionGPA, groupGPA, groupStd):
-   return (sectionGPA - groupGPA) / groupStd
+    return (sectionGPA - groupGPA) / groupStd
 
 calculate_z = np.vectorize(calculate_z)
 
@@ -68,66 +69,66 @@ def readSection(fileName):
         if len(cleaned_line) >= 4:
             name = f"{cleaned_line[1]} {cleaned_line[0]}"
             grade = cleaned_line[3]
-            grade_dict = {
+            student_grades = {
                 "A": student_a_grades,
                 "A-": student_a_minus_grades,
                 "D": student_d_grades,
                 "D-": student_d_minus_grades,
                 "F": student_f_grades
-            }.get(grade)
-
-            if grade_dict is not None:
-                if name not in grade_dict:
-                    grade_dict[name] = {}
-                if sectionName not in grade_dict[name]:
-                    grade_dict[name][sectionName] = 0
-                grade_dict[name][sectionName] += 1
-
+            }
+            if grade in student_grades:
+                if name not in student_grades[grade]:
+                    student_grades[grade][name] = []
+                student_grades[grade][name].append(sectionName)
             if convert_grade(grade) is not None:
                 gradeArray = np.append(gradeArray, convert_grade(grade))
 
     sectionGPA = round(gradeArray.sum() / len(gradeArray), 2) if gradeArray.size > 0 else 0
     return [sectionName, sectionGPA, sectionCredits]
 
+
 def readGroup(fileName, result_file_path):
     path_of_files = Path(fileName)
     parent_folder = path_of_files.parent
+    with open(fileName, 'r') as file:
+        lines = file.readlines()
+
+    if not lines:
+        print("File is empty")
+        return "", 0.0  # Return a default tuple if the file is empty
+
     sectionNameArray, sectionGradeArray, sectionCreditsArray = np.array([]), np.array([]), np.array([])
-
-    try:
-        with open(fileName, 'r') as file:
-            lines = file.readlines()
-            if not lines:
-                print("File is empty")
-                return None
-
-        for line in lines[1:]:
-            sectionDetails = readSection(parent_folder / line.strip())
-            if sectionDetails:
-                sectionNameArray = np.append(sectionNameArray, sectionDetails[0])
-                sectionGradeArray = np.append(sectionGradeArray, sectionDetails[1])
-                sectionCreditsArray = np.append(sectionCreditsArray, float(sectionDetails[2]))
-
-        if sectionCreditsArray.sum() > 0:
-            groupGPA = np.dot(sectionGradeArray, sectionCreditsArray) / sectionCreditsArray.sum()
+    for line in lines[1:]:
+        sectionDetails = readSection(parent_folder / line.strip())
+        if sectionDetails:
+            sectionNameArray = np.append(sectionNameArray, sectionDetails[0])
+            sectionGradeArray = np.append(sectionGradeArray, sectionDetails[1])
+            sectionCreditsArray = np.append(sectionCreditsArray, float(sectionDetails[2]))
         else:
-            groupGPA = 0
+            print(f"Failed to process section from file: {line.strip()}")  # Log the failure
 
-        groupStd = np.std(sectionGradeArray)
-        with open(result_file_path, "a") as result:
-            result.write(f"Group: {lines[0].strip()}\nGroup GPA: {groupGPA:.2f}\n")
-            for i in range(len(sectionNameArray)):
-                result.write(f"Section Name: {sectionNameArray[i]}, GPA: {sectionGradeArray[i]}, Credits: {sectionCreditsArray[i]}\n")
-            z = calculate_z(sectionGradeArray, groupGPA, groupStd)
-            for i, value in enumerate(z):
-                if abs(value) >= 2:
-                    result.write(f"Section {sectionNameArray[i]}'s GPA {sectionGradeArray[i]} is statistically different from the group's GPA {groupGPA:.2f} with a z-score of {value:.2f}\n")
-            result.write("\n")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return "", 0  # Return default values in case of error
+    if sectionCreditsArray.sum() > 0:
+        groupGPA = np.dot(sectionGradeArray, sectionCreditsArray) / sectionCreditsArray.sum()
+    else:
+        groupGPA = 0.0  # Default GPA if no credits or sections processed
 
-    return lines[0].strip(), groupGPA
+    groupStd = np.std(sectionGradeArray) if sectionGradeArray.size > 0 else 0
+
+    with open(result_file_path, "a") as result:
+        groupName = lines[0].strip()
+        result.write(f"Group: {groupName}\nGroup GPA: {groupGPA:.2f}\n")
+        for i in range(len(sectionNameArray)):
+            result.write(
+                f"Section Name: {sectionNameArray[i]}, GPA: {sectionGradeArray[i]}, Credits: {sectionCreditsArray[i]}\n")
+        result.write("\n")
+        z = calculate_z(sectionGradeArray, groupGPA, groupStd)
+        for i in range(len(sectionGradeArray)):
+            if z[i] >= 2 or z[i] <= -2:
+                result.write(
+                    f"Section {sectionNameArray[i]}'s GPA {sectionGradeArray[i]} is statistically different than the group's GPA {groupGPA:.2f} with z-score {z[i]:.2f}")
+        result.write("\n")
+
+    return groupName, groupGPA
 
 def readRun(fileName, result_file_path):
     path_of_files = Path(fileName)
@@ -138,60 +139,90 @@ def readRun(fileName, result_file_path):
         lines = file.readlines()
 
     with open(result_file_path, "w") as result:
-        result.write(f"Run Name: {lines[0].strip()}\n")
+        result.write(f"Run Name: {lines[0]}\n")
     for line in lines[1:]:
         name, GPA = readGroup(parent_folder / line.strip(), result_file_path)
         groupNames.append(name)
         groupGPA = np.append(groupGPA, GPA)
 
-    runGPA = groupGPA.sum() / len(groupGPA) if len(groupGPA) > 0 else 0
+    runGPA = groupGPA.sum() / len(groupGPA)
     if len(groupNames) > 1:
         with open(result_file_path, "a") as result:
-            z = calculate_z(groupGPA, runGPA, np.std(groupGPA))
-            for i, name in enumerate(groupNames):
-                if abs(z[i]) >= 2:
-                    result.write(f"{name}'s GPA {groupGPA[i]:.2f} is statistically different from the Run's GPA {runGPA:.2f} with a z-score of {z[i]:.2f}\n")
+            z = calculate_z(groupGPA, runGPA, groupGPA.std())
+            for i in range(len(groupGPA)):
+                if (z[i] >= 2 or z[i] <= -2):
+                    result.write(f"{groupNames[i]}\'s GPA {groupGPA[i]:.2f} is statistically different than the run's GPA {runGPA:.2f} with z-score {z[i]:.2f}\n")
             result.write("\n")
 
 def analyze_a_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
         result_file.write("Students with 'A' grade in at least 2 different sections:\n")
-        for student, classes in student_a_grades.items():
-            if len(classes) >= 2:
-                class_details = ', '.join(f"{cls} ({count} times)" for cls, count in classes.items())
-                result_file.write(f"{student} received 'A' in: {class_details}\n")
+        for student, sections in student_a_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_a_minus_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students with 'A-' grade in at least 2 different sections:\n")
-        for student, classes in student_a_minus_grades.items():
-            if len(classes) >= 2:
-                class_details = ', '.join(f"{cls} ({count} times)" for cls, count in classes.items())
-                result_file.write(f"{student} received 'A-' in: {class_details}\n")
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'A-' grade in at least 2 different sections:\n")
+        for student, sections in student_a_minus_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_d_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students with 'D' grade in at least 2 different sections:\n")
-        for student, classes in student_d_grades.items():
-            if len(classes) >= 2:
-                class_details = ', '.join(f"{cls} ({count} times)" for cls, count in classes.items())
-                result_file.write(f"{student} received 'D' in: {class_details}\n")
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D' grade in at least 2 different sections:\n")
+        for student, sections in student_d_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_d_minus_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students with 'D-' grade in at least 2 different sections:\n")
-        for student, classes in student_d_minus_grades.items():
-            if len(classes) >= 2:
-                class_details = ', '.join(f"{cls} ({count} times)" for cls, count in classes.items())
-                result_file.write(f"{student} received 'D-' in: {class_details}\n")
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D-' grade in at least 2 different sections:\n")
+        for student, sections in student_d_minus_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_f_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students with 'F' grade in at least 2 different sections:\n")
-        for student, classes in student_f_grades.items():
-            if len(classes) >= 2:
-                class_details = ', '.join(f"{cls} ({count} times)" for cls, count in classes.items())
-                result_file.write(f"{student} received 'F' in: {class_details}\n")
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'F' grade in at least 2 different sections:\n")
+        for student, sections in student_f_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def main():
     pass
@@ -201,5 +232,6 @@ def main():
     # path_of_files=Path(fileName)
     # parent_folder=path_of_files.parent
     # analyze_a_grades(parent_folder)
+
 if __name__ == "__main__":
-    (main)
+    main()
