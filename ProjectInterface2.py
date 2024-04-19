@@ -1,6 +1,6 @@
 import os
 import subprocess
-from tkinter import *
+from tkinter import Tk, Label, Button
 from tkinter import messagebox
 from tkinter import filedialog
 from pathlib import Path
