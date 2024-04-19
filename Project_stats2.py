@@ -160,7 +160,7 @@ def analyze_a_grades(result_file_path):
         previous_position = result_file.tell()
 
         result_file.write("Students with 'A' grade in at least 2 different sections:\n")
-        for student, sections in student_a_grades.items():
+        for student, sections in sorted(student_a_grades.items()):
             if len(sections) >= 2:
                 flag = 1
                 result_file.write(f"{student} - {', '.join(sections)}\n")
@@ -174,7 +174,7 @@ def analyze_a_minus_grades(result_file_path):
         previous_position = result_file.tell()
 
         result_file.write("\nStudents with 'A-' grade in at least 2 different sections:\n")
-        for student, sections in student_a_minus_grades.items():
+        for student, sections in sorted(student_a_minus_grades.items()):
             if len(sections) >= 2:
                 flag = 1
                 result_file.write(f"{student} - {', '.join(sections)}\n")
@@ -188,7 +188,7 @@ def analyze_d_grades(result_file_path):
         previous_position = result_file.tell()
 
         result_file.write("\nStudents with 'D' grade in at least 2 different sections:\n")
-        for student, sections in student_d_grades.items():
+        for student, sections in sorted(student_d_grades.items()):
             if len(sections) >= 2:
                 flag = 1
                 result_file.write(f"{student} - {', '.join(sections)}\n")
@@ -202,7 +202,7 @@ def analyze_d_minus_grades(result_file_path):
         previous_position = result_file.tell()
 
         result_file.write("\nStudents with 'D-' grade in at least 2 different sections:\n")
-        for student, sections in student_d_minus_grades.items():
+        for student, sections in sorted(student_d_minus_grades.items()):
             if len(sections) >= 2:
                 flag = 1
                 result_file.write(f"{student} - {', '.join(sections)}\n")
@@ -216,7 +216,7 @@ def analyze_f_grades(result_file_path):
         previous_position = result_file.tell()
 
         result_file.write("\nStudents with 'F' grade in at least 2 different sections:\n")
-        for student, sections in student_f_grades.items():
+        for student, sections in sorted(student_f_grades.items()):
             if len(sections) >= 2:
                 flag = 1
                 result_file.write(f"{student} - {', '.join(sections)}\n")
