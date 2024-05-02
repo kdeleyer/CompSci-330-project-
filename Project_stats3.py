@@ -4,11 +4,15 @@ from tkinter import Tk, filedialog
 from pathlib import Path
 import os
 
+# Global set to track processed file names
+processed_file_names = set()
+
 # Global dictionaries to track grades per student across sections, storing section names
 student_a_grades = {}
 student_a_minus_grades = {}
 student_d_grades = {}
 student_d_minus_grades = {}
+student_d_plus_grades = {}
 student_f_grades = {}
 
 # Converts letter grade to grade points
@@ -47,7 +51,16 @@ def calculate_z(sectionGPA, groupGPA, groupStd):
 calculate_z = np.vectorize(calculate_z)
 
 def readSection(fileName):
-    global student_a_grades, student_a_minus_grades, student_d_grades, student_d_minus_grades, student_f_grades
+    global student_a_grades, student_a_minus_grades, student_d_grades, student_d_minus_grades, student_d_plus_grades, student_f_grades
+    global processed_file_names
+
+    # Check if the current file name has already been processed
+    if fileName.name in processed_file_names:
+        print(f"Skipping duplicate file: {fileName}")
+        return None
+    else:
+        processed_file_names.add(fileName.name)
+
     with open(fileName, 'r', encoding="utf-8-sig") as file:
         lines = file.readlines()
 
@@ -74,19 +87,18 @@ def readSection(fileName):
                 "A-": student_a_minus_grades,
                 "D": student_d_grades,
                 "D-": student_d_minus_grades,
-                "F": student_f_grades
+                "F": student_f_grades,
+                "D+": student_d_plus_grades
             }
             if grade in student_grades:
                 if name not in student_grades[grade]:
                     student_grades[grade][name] = []
-                if  not (sectionName in student_grades[grade][name]):
-                    student_grades[grade][name].append(sectionName)
+                student_grades[grade][name].append(sectionName)
             if convert_grade(grade) is not None:
                 gradeArray = np.append(gradeArray, convert_grade(grade))
 
     sectionGPA = round(gradeArray.sum() / len(gradeArray), 2) if gradeArray.size > 0 else 0
     return [sectionName, sectionGPA, sectionCredits]
-
 
 def readGroup(fileName, result_file_path):
     path_of_files = Path(fileName)
@@ -130,6 +142,7 @@ def readGroup(fileName, result_file_path):
         result.write("\n")
 
     return groupName, groupGPA
+
 
 def readRun(fileName, result_file_path):
     path_of_files = Path(fileName)
@@ -190,6 +203,20 @@ def analyze_d_grades(result_file_path):
 
         result_file.write("\nStudents with 'D' grade in at least 2 different sections:\n")
         for student, sections in student_d_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
+
+def analyze_d_plus_grades(result_file_path):
+    with open(result_file_path, "a") as result_file:
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D+' grade in at least 2 different sections:\n")
+        for student, sections in student_d_plus_grades.items():
             if len(sections) >= 2:
                 flag = 1
                 result_file.write(f"{student} - {', '.join(sections)}\n")
