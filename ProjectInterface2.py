@@ -52,7 +52,6 @@ def on_goBtn_pressed():
         Project_stats2.analyze_f_grades(result_file_path)
         donelbl.config(text="Processing complete. Opening results...")
 
-        t = Thread()
         # Open Notepad with the results and wait for it to close
         process = subprocess.Popen(['notepad', str(result_file_path)], close_fds=True)
         process.wait()  # Wait for the Notepad process to close
