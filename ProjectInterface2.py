@@ -1,7 +1,6 @@
 import os
 import subprocess
 from tkinter import Tk, Label, Button
-from tkinter import messagebox
 from tkinter import filedialog
 from pathlib import Path
 import Project_stats2
@@ -53,6 +52,7 @@ def on_goBtn_pressed():
         Project_stats2.analyze_f_grades(result_file_path)
         donelbl.config(text="Processing complete. Opening results...")
 
+        t = Thread()
         # Open Notepad with the results and wait for it to close
         process = subprocess.Popen(['notepad', str(result_file_path)], close_fds=True)
         process.wait()  # Wait for the Notepad process to close

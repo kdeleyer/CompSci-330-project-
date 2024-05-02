@@ -79,7 +79,8 @@ def readSection(fileName):
             if grade in student_grades:
                 if name not in student_grades[grade]:
                     student_grades[grade][name] = []
-                student_grades[grade][name].append(sectionName)
+                if  not (sectionName in student_grades[grade][name]):
+                    student_grades[grade][name].append(sectionName)
             if convert_grade(grade) is not None:
                 gradeArray = np.append(gradeArray, convert_grade(grade))
 
