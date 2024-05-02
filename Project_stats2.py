@@ -1,3 +1,4 @@
+User
 import numpy as np
 import pandas as pd
 from tkinter import Tk, filedialog
@@ -156,55 +157,73 @@ def readRun(fileName, result_file_path):
 
 def analyze_a_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students who received the letter grade 'A' more than once:\n")
-        for student_code, sections in student_a_grades.items():
-            if len(set(sections)) > 1:
-                result_file.write(f'"{student_code}":\n')
-                unique_sections = set(sections)
-                for section in unique_sections:
-                    result_file.write(f'\t{section}: A\n')
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("Students with 'A' grade in at least 2 different sections:\n")
+        for student, sections in student_a_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_a_minus_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students who received the letter grade 'A-' more than once:\n")
-        for student_code, sections in student_a_minus_grades.items():
-            if len(set(sections)) > 1:
-                result_file.write(f'"{student_code}":\n')
-                unique_sections = set(sections)
-                for section in unique_sections:
-                    result_file.write(f'\t{section}: A-\n')
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'A-' grade in at least 2 different sections:\n")
+        for student, sections in student_a_minus_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_d_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students who received the letter grade 'D' more than once:\n")
-        for student_code, sections in student_d_grades.items():
-            if len(set(sections)) > 1:
-                result_file.write(f'"{student_code}":\n')
-                unique_sections = set(sections)
-                for section in unique_sections:
-                    result_file.write(f'\t{section}: D\n')
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D' grade in at least 2 different sections:\n")
+        for student, sections in student_d_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_d_minus_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students who received the letter grade 'D-' more than once:\n")
-        for student_code, sections in student_d_minus_grades.items():
-            if len(set(sections)) > 1:
-                result_file.write(f'"{student_code}":\n')
-                unique_sections = set(sections)
-                for section in unique_sections:
-                    result_file.write(f'\t{section}: D-\n')
+        flag = 0
+        previous_position = result_file.tell()
+
+        result_file.write("\nStudents with 'D-' grade in at least 2 different sections:\n")
+        for student, sections in student_d_minus_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
+
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def analyze_f_grades(result_file_path):
     with open(result_file_path, "a") as result_file:
-        result_file.write("Students who received the letter grade 'F' more than once:\n")
-        for student_code, sections in student_f_grades.items():
-            if len(set(sections)) > 1:
-                result_file.write(f'"{student_code}":\n')
-                unique_sections = set(sections)
-                for section in unique_sections:
-                    result_file.write(f'\t{section}: F\n')
+        flag = 0
+        previous_position = result_file.tell()
 
+        result_file.write("\nStudents with 'F' grade in at least 2 different sections:\n")
+        for student, sections in student_f_grades.items():
+            if len(sections) >= 2:
+                flag = 1
+                result_file.write(f"{student} - {', '.join(sections)}\n")
 
+        if flag == 0:
+            result_file.truncate(previous_position)
 
 def main():
     pass
