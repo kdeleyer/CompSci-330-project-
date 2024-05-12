@@ -37,11 +37,8 @@ def on_goBtn_pressed():
     parent_folder = path_of_files.parent
 
     if filePath.endswith(".run"):
-        Project_stats_final.student_a_grades = {}
-        Project_stats_final.student_a_minus_grades = {}
-        Project_stats_final.student_d_grades = {}
-        Project_stats_final.student_d_minus_grades = {}
-        Project_stats_final.student_f_grades = {}
+        Project_stats_final.student_good_grades = {}
+        Project_stats_final.student_bad_grades = {}
         result_file_path = parent_folder / f"{os.path.basename(filePath).rstrip('.run')}results.txt"
 
         Project_stats_final.readRun(filePath, result_file_path)
