@@ -1,15 +1,9 @@
 import numpy as np
-import pandas as pd
-from tkinter import Tk, filedialog
 from pathlib import Path
-import os
 
 # Global dictionaries to track grades per student across sections, storing section names
 student_good_grades = {}
 student_bad_grades = {}
-# student_d_grades = {}
-# student_d_minus_grades = {}
-# student_f_grades = {}
 
 # Converts letter grade to grade points
 def convert_grade(grade):
@@ -165,7 +159,7 @@ def analyze_good_grades(result_file_path):
         flag = 0
         previous_position = result_file.tell()
 
-        result_file.write("Students with good grades (A, A-) in at least 2 different sections:\n")
+        result_file.write("Students with above average grades (A, A-) in at least 2 different sections:\n")
         for student, sections in sorted(student_good_grades.items()):
             if len(sections) >= 2:
                 flag = 1
@@ -179,7 +173,7 @@ def analyze_bad_grades(result_file_path):
         flag = 0
         previous_position = result_file.tell()
 
-        result_file.write("\nStudents with bad grades (D, D-, F) in at least 2 different sections:\n")
+        result_file.write("\nStudents with below average grades (D, D-, F) in at least 2 different sections:\n")
         for student, sections in sorted(student_bad_grades.items()):
             if len(sections) >= 2:
                 flag = 1
@@ -188,56 +182,5 @@ def analyze_bad_grades(result_file_path):
         if flag == 0:
             result_file.truncate(previous_position)
 
-# def analyze_d_grades(result_file_path):
-#     with open(result_file_path, "a") as result_file:
-#         flag = 0
-#         previous_position = result_file.tell()
 
-#         result_file.write("\nStudents with 'D' grade in at least 2 different sections:\n")
-#         for student, sections in sorted(student_d_grades.items()):
-#             if len(sections) >= 2:
-#                 flag = 1
-#                 result_file.write(f"{student} - {', '.join(sections)}\n")
 
-#         if flag == 0:
-#             result_file.truncate(previous_position)
-
-# def analyze_d_minus_grades(result_file_path):
-#     with open(result_file_path, "a") as result_file:
-#         flag = 0
-#         previous_position = result_file.tell()
-
-#         result_file.write("\nStudents with 'D-' grade in at least 2 different sections:\n")
-#         for student, sections in sorted(student_d_minus_grades.items()):
-#             if len(sections) >= 2:
-#                 flag = 1
-#                 result_file.write(f"{student} - {', '.join(sections)}\n")
-
-#         if flag == 0:
-#             result_file.truncate(previous_position)
-
-# def analyze_f_grades(result_file_path):
-#     with open(result_file_path, "a") as result_file:
-#         flag = 0
-#         previous_position = result_file.tell()
-
-#         result_file.write("\nStudents with 'F' grade in at least 2 different sections:\n")
-#         for student, sections in sorted(student_f_grades.items()):
-#             if len(sections) >= 2:
-#                 flag = 1
-#                 result_file.write(f"{student} - {', '.join(sections)}\n")
-
-#         if flag == 0:
-#             result_file.truncate(previous_position)
-
-def main():
-    pass
-    # Tk().withdraw()
-    # fileName = filedialog.askopenfilename()
-    # readRun(fileName)
-    # path_of_files=Path(fileName)
-    # parent_folder=path_of_files.parent
-    # analyze_a_grades(parent_folder)
-
-if __name__ == "__main__":
-    main()

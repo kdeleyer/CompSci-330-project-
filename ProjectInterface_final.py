@@ -47,9 +47,7 @@ def on_goBtn_pressed():
         Project_stats_final.readRun(filePath, result_file_path)
         Project_stats_final.analyze_good_grades(result_file_path)
         Project_stats_final.analyze_bad_grades(result_file_path)
-        # Project_stats2.analyze_d_grades(result_file_path)
-        # Project_stats2.analyze_d_minus_grades(result_file_path)
-        # Project_stats2.analyze_f_grades(result_file_path)
+
         donelbl.config(text="Processing complete. Opening results...")
 
         # Open Notepad with the results and wait for it to close
